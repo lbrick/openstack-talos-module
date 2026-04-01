@@ -18,13 +18,13 @@ It currently handles the creation of security groups and rules required for a fu
 module "kubernetes_cluster" {
   source = "github.com/lbrick/openstack-talos-module"
 
-  cluster_name       = "kahu-test"
+  cluster_name       = "cluster_name"
   kubernetes_version = "v1.35.2"
-  key_pair           = "kahu-key"
+  key_pair           = "openstack_keypair"
 
   source_ips = [
     "10.1.0.0/24",
-    "203.211.105.199/32"
+    "additonal_ip/32"
   ]
 
   controlplane_count = 3
