@@ -93,18 +93,50 @@ variable "os_lb_provider" {
   default     = "ovn"
 }
 
-variable "cni_url" {
-  description = "URL for the custom CNI manifest"
+variable "cni_type" {
+  description = "CNI to use. Options: flannel, calico, cilium"
   type        = string
-  default     = "https://raw.githubusercontent.com/sergelogvinov/terraform-talos/main/_deployments/vars/cilium-result.yaml"
+  default     = "flannel"
+
+  validation {
+    condition     = contains(["flannel", "calico", "cilium"], var.cni_type)
+    error_message = "cni_type must be one of: flannel, calico, cilium."
+  }
+}
+
+variable "cni_url_defaults" {
+  type = map(string)
+  default = {
+    cilium = "https://raw.githubusercontent.com/sergelogvinov/terraform-talos/main/_deployments/vars/cilium-result.yaml"
+    calico = "https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/calico.yaml"
+    flannel = "" # Flannel is built-in to Talos, usually doesn't need a URL
+  }
+}
+variable "extra_manifests" {
+  description = "The main/base list of manifests"
+  type        = list(string)
+  default     = [
+    "https://raw.githubusercontent.com/alex1989hu/kubelet-serving-cert-approver/main/deploy/standalone-install.yaml",
+    "https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml"
+  ]
+}
+
+variable "additional_manifests" {
+  description = "Additional manifests to append to the base list"
+  type        = list(string)
+  default     = []
 }
 
 variable "external_cloud_manifests" {
   description = "List of manifests for the external cloud provider"
   type        = list(string)
   default     = [
-    "https://raw.githubusercontent.com/sergelogvinov/terraform-talos/main/_deployments/vars/talos-cloud-controller-manager-result.yaml",
-    "https://raw.githubusercontent.com/sergelogvinov/terraform-talos/main/openstack/deployments/openstack-cloud-controller-manager-result.yaml",
-    "https://raw.githubusercontent.com/sergelogvinov/terraform-talos/main/openstack/deployments/openstack-cinder-csi-result.yaml"
+    "https://raw.githubusercontent.com/lbrick/openstack-talos-module/refs/heads/main/manifests/controller-manager/v1.35.0/openstack-cloud-controller-manager.yaml"
   ]
+}
+
+variable "additional_cloud_manifests" {
+  description = "Additional manifests to append to the base list"
+  type        = list(string)
+  default     = []
 }

@@ -32,6 +32,9 @@ data "openstack_networking_network_v2" "this_external" {
 }
 
 locals {
+
+  active_cni_url = lookup(var.cni_url_defaults, var.cni_type, "")
+  
   clouds_file = yamldecode(file(var.clouds_yaml_path))
   raw_cloud   = local.clouds_file.clouds[var.os_cloud_name]
   raw_auth    = local.raw_cloud.auth

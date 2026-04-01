@@ -12,6 +12,7 @@ data "talos_machine_configuration" "controlplane" {
       machine = {
         kubelet = {
           extraArgs = {
+            cloud-provider = "external"
             "rotate-server-certificates" = true
           }
         }
@@ -19,12 +20,57 @@ data "talos_machine_configuration" "controlplane" {
           extraKernelArgs = ["talos.config=none", "talos.experimental.wipe=system"]
         }
       }
-      cluster = {
-        extraManifests = [
-          "https://raw.githubusercontent.com/alex1989hu/kubelet-serving-cert-approver/main/deploy/standalone-install.yaml",
-          "https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml"
-        ]
-      }
+      cluster = merge(
+        {
+          controllerManager = {
+            extraArgs = {
+              cloud-provider = "external"
+            }
+          }
+          extraManifests = concat(var.extra_manifests, var.additional_manifests)
+          inlineManifests = [
+            {
+              name = "openstack-cloud-controller-config"
+              contents = yamlencode({
+                apiVersion = "v1"
+                kind       = "Secret"
+                type       = "Opaque"
+                metadata = {
+                  name      = "cloud-config"
+                  namespace = "kube-system"
+                }
+                data = {
+                  "cloud.conf" = base64encode(local.occm_conf)
+                }
+              })
+            }
+          ]
+          externalCloudProvider = {
+            enabled   = true
+            manifests = concat(var.external_cloud_manifests, var.additional_cloud_manifests)
+          }
+        },
+
+        # Conditional Network (only if not flannel)
+        var.cni_type != "flannel" ? {
+          network = {
+            #dnsDomain      = domain
+            #podSubnets     = split(",", podSubnets)
+            #serviceSubnets = split(",", serviceSubnets)
+            cni = {
+              name = "custom"
+              urls = [local.active_cni_url]
+            }
+          }
+        } : {},
+
+        # Conditional Proxy (only if cilium)
+        var.cni_type == "cilium" ? {
+          proxy = {
+            disabled = true
+          }
+        } : {}
+      )
     })
   ]
 }
@@ -45,6 +91,7 @@ data "talos_machine_configuration" "worker" {
         }
         kubelet = {
           extraArgs = {
+            cloud-provider = "external"
             rotate-server-certificates = true
           }
         }
