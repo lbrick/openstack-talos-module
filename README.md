@@ -85,7 +85,7 @@ The Cilium manifests provided in `manifests/cni/cilium/` are intended for **demo
 
 ### Steps for Production CNI Deployment
 
-To securely deploy Cilium in production, you must generate your own manifests with unique secrets example can also be found on the Talos documentation [here](https://docs.siderolabs.com/kubernetes-guides/cni/deploying-cilium#method-2-helm-manifests-install):
+To securely deploy Cilium in production, you must generate your own manifests with unique secrets, example can also be found on the Talos documentation [here](https://docs.siderolabs.com/kubernetes-guides/cni/deploying-cilium#method-2-helm-manifests-install):
 
 1.  **Generate a Secure Manifest**:
     Use Helm to template Cilium with auto-generated secrets:

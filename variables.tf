@@ -107,11 +107,12 @@ variable "cni_type" {
 variable "cni_url_defaults" {
   type = map(string)
   default = {
-    cilium = "https://raw.githubusercontent.com/sergelogvinov/terraform-talos/main/_deployments/vars/cilium-result.yaml"
-    calico = "https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/calico.yaml"
+    cilium = "https://raw.githubusercontent.com/lbrick/openstack-talos-module/refs/heads/main/manifests/cni/cilium/1.18.0/cilium.yaml"
+    calico = "https://raw.githubusercontent.com/lbrick/openstack-talos-module/refs/heads/main/manifests/cni/calico/v3.31.4/tigera-operator.yaml"
     flannel = "" # Flannel is built-in to Talos, usually doesn't need a URL
   }
 }
+
 variable "extra_manifests" {
   description = "The main/base list of manifests"
   type        = list(string)
