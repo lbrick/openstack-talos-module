@@ -69,3 +69,42 @@ variable "worker_flavor" {
     type = string
     default = "balanced1.4cpu8ram"
 }
+
+variable "clouds_yaml_path" {
+  description = "Path to the OpenStack clouds.yaml file"
+  type        = string
+  default     = "./clouds.yaml"
+}
+
+variable "os_cloud_name" {
+  description = "The name of the cloud to use from clouds.yaml"
+  type        = string
+  default     = "openstack"
+}
+
+variable "os_floating_network_id" {
+  type        = string
+  description = "The ID of the floating network for the LoadBalancer"
+  default     = "3f405cc9-28a3-4973-b5a1-7f50f112e5d5"
+}
+
+variable "os_lb_provider" {
+  type        = string
+  default     = "ovn"
+}
+
+variable "cni_url" {
+  description = "URL for the custom CNI manifest"
+  type        = string
+  default     = "https://raw.githubusercontent.com/sergelogvinov/terraform-talos/main/_deployments/vars/cilium-result.yaml"
+}
+
+variable "external_cloud_manifests" {
+  description = "List of manifests for the external cloud provider"
+  type        = list(string)
+  default     = [
+    "https://raw.githubusercontent.com/sergelogvinov/terraform-talos/main/_deployments/vars/talos-cloud-controller-manager-result.yaml",
+    "https://raw.githubusercontent.com/sergelogvinov/terraform-talos/main/openstack/deployments/openstack-cloud-controller-manager-result.yaml",
+    "https://raw.githubusercontent.com/sergelogvinov/terraform-talos/main/openstack/deployments/openstack-cinder-csi-result.yaml"
+  ]
+}

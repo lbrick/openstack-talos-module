@@ -18,12 +18,53 @@ data "talos_machine_configuration" "controlplane" {
         install = {
           extraKernelArgs = ["talos.config=none", "talos.experimental.wipe=system"]
         }
+        sysctls = {
+          "net.core.somaxconn"           = 65535
+          "net.core.netdev_max_backlog" = 4096
+        }
+        features = {
+          kubernetesTalosAPIAccess = {
+            enabled                     = true
+            allowedRoles                = ["os:reader"]
+            allowedKubernetesNamespaces = ["kube-system"]
+          }
+        }
       }
       cluster = {
+        proxy = {
+          disabled = true
+        }
+        controllerManager = {
+          extraArgs = {
+            "node-cidr-mask-size-ipv4" = 24
+            "node-cidr-mask-size-ipv6" = 112
+          }
+        }
         extraManifests = [
           "https://raw.githubusercontent.com/alex1989hu/kubelet-serving-cert-approver/main/deploy/standalone-install.yaml",
           "https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml"
         ]
+        inlineManifests = [
+          {
+            name = "openstack-cloud-controller-config"
+            contents = yamlencode({
+              apiVersion = "v1"
+              kind       = "Secret"
+              type       = "Opaque"
+              metadata = {
+                name      = "openstack-cloud-controller-manager"
+                namespace = "kube-system"
+              }
+              data = {
+                "cloud.conf" = base64encode(local.occm_conf)
+              }
+            })
+          }
+        ]
+        externalCloudProvider = {
+          enabled = true
+          manifests = var.external_cloud_manifests
+        }
       }
     })
   ]
@@ -45,6 +86,7 @@ data "talos_machine_configuration" "worker" {
         }
         kubelet = {
           extraArgs = {
+            cloud-provider = "external"
             rotate-server-certificates = true
           }
         }
