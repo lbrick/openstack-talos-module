@@ -27,6 +27,24 @@ resource "openstack_networking_secgroup_rule_v2" "in_cluster_ingress_cp_worker" 
   description       = "In-cluster ingress (worker → controlplane)"
 }
 
+resource "openstack_networking_secgroup_rule_v2" "in_cluster_ingress_worker_worker" {
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "" # Empty string allows all protocols in Neutron
+  remote_group_id   = openstack_networking_secgroup_v2.worker.id
+  security_group_id = openstack_networking_secgroup_v2.worker.id
+  description       = "In-cluster ingress (worker → worker)"
+}
+
+resource "openstack_networking_secgroup_rule_v2" "in_cluster_ingress_worker_cp" {
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "" # Empty string allows all protocols in Neutron
+  remote_group_id   = openstack_networking_secgroup_v2.controlplane.id
+  security_group_id = openstack_networking_secgroup_v2.worker.id
+  description       = "In-cluster ingress (controlplane → worker)"
+}
+
 # --- IP-in-IP (Calico)
 resource "openstack_networking_secgroup_rule_v2" "ip_in_ip_cp_cp" {
   direction         = "ingress"
@@ -43,6 +61,24 @@ resource "openstack_networking_secgroup_rule_v2" "ip_in_ip_cp_worker" {
   protocol          = 4
   remote_group_id   = openstack_networking_secgroup_v2.worker.id
   security_group_id = openstack_networking_secgroup_v2.controlplane.id
+  description       = "IP-in-IP (Calico)"
+}
+
+resource "openstack_networking_secgroup_rule_v2" "ip_in_ip_worker_worker" {
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = 4
+  remote_group_id   = openstack_networking_secgroup_v2.worker.id
+  security_group_id = openstack_networking_secgroup_v2.worker.id
+  description       = "IP-in-IP (Calico)"
+}
+
+resource "openstack_networking_secgroup_rule_v2" "ip_in_ip_worker_cp" {
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = 4
+  remote_group_id   = openstack_networking_secgroup_v2.controlplane.id
+  security_group_id = openstack_networking_secgroup_v2.worker.id
   description       = "IP-in-IP (Calico)"
 }
 
@@ -66,6 +102,28 @@ resource "openstack_networking_secgroup_rule_v2" "bgp_cp_worker" {
   port_range_max    = 179
   remote_group_id   = openstack_networking_secgroup_v2.worker.id
   security_group_id = openstack_networking_secgroup_v2.controlplane.id
+  description       = "BGP (Calico)"
+}
+
+resource "openstack_networking_secgroup_rule_v2" "bgp_woker_worker" {
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "tcp"
+  port_range_min    = 179
+  port_range_max    = 179
+  remote_group_id   = openstack_networking_secgroup_v2.worker.id
+  security_group_id = openstack_networking_secgroup_v2.worker.id
+  description       = "BGP (Calico)"
+}
+
+resource "openstack_networking_secgroup_rule_v2" "bgp_worker_cp" {
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "tcp"
+  port_range_min    = 179
+  port_range_max    = 179
+  remote_group_id   = openstack_networking_secgroup_v2.controlplane.id
+  security_group_id = openstack_networking_secgroup_v2.worker.id
   description       = "BGP (Calico)"
 }
 
@@ -105,4 +163,25 @@ resource "openstack_networking_secgroup_rule_v2" "talos_api_worker" {
   remote_ip_prefix  = each.value
   security_group_id = openstack_networking_secgroup_v2.worker.id
   description       = "Talos API Management (Worker)"
+}
+
+# --- Kubernetes Node-port rule
+resource "openstack_networking_secgroup_rule_v2" "k8s_node_port_tcp" {
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "tcp"
+  port_range_min    = 30000
+  port_range_max    = 32767
+  security_group_id = openstack_networking_secgroup_v2.worker.id
+  description       = "Node Port Services (TCP)"
+}
+
+resource "openstack_networking_secgroup_rule_v2" "k8s_node_port_udp" {
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "udp"
+  port_range_min    = 30000
+  port_range_max    = 32767
+  security_group_id = openstack_networking_secgroup_v2.worker.id
+  description       = "Node Port Services (UDP)"
 }
